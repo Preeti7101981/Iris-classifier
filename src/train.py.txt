@@ -1,0 +1,51 @@
+import os
+import joblib
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.datasets import load_iris
+from sklearn.model_selection import train_test_split
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.metrics import accuracy_score, classification_report, ConfusionMatrixDisplay
+
+# Create outputs directory if it doesn't exist
+os.makedirs('outputs', exist_ok=True)
+
+# --- 1. Load Data ---
+iris = load_iris()
+X = iris.data
+y = iris.target
+
+# --- 2. Split Data ---
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# --- 3. Train Model ---
+model = DecisionTreeClassifier(random_state=42)
+model.fit(X_train, y_train)
+
+# --- 4. Evaluate ---
+y_pred = model.predict(X_test)
+accuracy = accuracy_score(y_test, y_pred)
+print(f"Accuracy: {accuracy}")
+print("\nClassification Report:")
+print(classification_report(y_test, y_pred, target_names=iris.target_names))
+
+# --- STEP 8: SAVE ARTIFACTS ---
+
+# 8a. Save the Confusion Matrix as a PNG
+# We use ConfusionMatrixDisplay to generate the visual plot
+disp = ConfusionMatrixDisplay.from_estimator(
+    model,
+    X_test,
+    y_test,
+    display_labels=iris.target_names,
+    cmap=plt.cm.Blues
+)
+plt.title("Confusion Matrix")
+plt.savefig('outputs/confusion_matrix.png')
+plt.close()
+print("Confusion matrix saved to outputs/confusion_matrix.png")
+
+# 8b. Save the trained model using joblib
+joblib.dump(model, 'outputs/model.joblib')
+print("Model saved to outputs/model.joblib")
